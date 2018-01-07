@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    thor (0.20.0)
+    zaru (0.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  thor
+  zaru
+
+BUNDLED WITH
+   1.15.4
