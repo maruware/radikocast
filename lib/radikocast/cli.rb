@@ -12,6 +12,12 @@ module Radikocast
   class CLI < Thor
     DST_DIR = File.expand_path('../../../dst', __FILE__)
 
+    desc "configure NAME, HOST", "Initialize config"
+    def configure(name, host)
+      config = {'name' => name, 'host' => host}
+      File.write('config.yml', YAML.dump(config))
+    end
+
     desc "add URL", "Add new Podcast timefree URL"
     def add(url)
       m = url.match(/http:\/\/radiko.jp\/#!\/ts\/(\w+)\/([0-9]+)/)
