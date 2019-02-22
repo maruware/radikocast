@@ -7,6 +7,7 @@ require 'json'
 require 'yaml'
 
 require 'radikocast/rss'
+require 'radikocast/scraping'
 
 module Radikocast
   class CLI < Thor
@@ -18,22 +19,15 @@ module Radikocast
       File.write('config.yml', YAML.dump(config))
     end
 
-    desc "add URL", "Add new Podcast timefree URL"
-    def add(url)
-      m = url.match(/http:\/\/radiko.jp\/#!\/ts\/(\w+)\/([0-9]+)/)
-      unless m
-        raise 'Bad url'
-      end
-      station_id = m[1]
-      item_code = m[2]
-
-      o, e, s = Open3.capture3("radigo rec -id=#{station_id} -s=#{item_code}")
+    desc "add STATION_ID ITEM_TIMECODE", "Add new Podcast timefree URL"
+    def add(station_id, item_timecode)
+      o, e, s = Open3.capture3("radigo rec -id=#{station_id} -s=#{item_timecode}")
       STDERR.puts e if e
       puts o
 
-      y = item_code[0..3]
-      m = item_code[4..5]
-      d = item_code[6..7]
+      y = item_timecode[0..3]
+      m = item_timecode[4..5]
+      d = item_timecode[6..7]
 
       out_lines = o.split("\n")
       info_line = out_lines[5]
