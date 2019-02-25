@@ -3,7 +3,7 @@ module Radikocast
     cmd = "#{ENV['RADIGO_PATH']} rec -id=#{program.station} -s=#{program.start_code}"
     Radikocast.logger.debug(cmd)
     o, e, s = Open3.capture3(cmd)
-    STDERR.puts e if e
+    Radikocast.logger.error(e) if e
     Radikocast.logger.info(o)
 
     out_lines = o.split("\n")
