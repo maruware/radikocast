@@ -13,7 +13,8 @@ module Radikocast
       metas.each do |meta|
         name = "#{meta['year']}/#{meta['month']}/#{meta['day']} - #{meta['title']}"
         url = "#{deploy_url}/#{meta['audio_filename']}"
-        pub_date = Date.parse("#{meta['year']}-#{meta['month']}-#{meta['day']}").strftime('%a, %d %b %Y %H:%M:%S %z')
+        pub_date = Time.parse("#{meta['year']}-#{meta['month']}-#{meta['day']} #{meta['hour']}:#{meta['minute']}")
+        pub_date_str = pub_date.strftime('%a, %d %b %Y %H:%M:%S %z')
         items += <<-XML
           <item>
             <title>#{name}</title>
@@ -21,7 +22,7 @@ module Radikocast
                        length="#{meta['audio_size']}"
                        type="audio/mp4" />
             <guid isPermaLink="true">#{url}</guid>
-            <pubDate>#{pub_date}</pubDate>
+            <pubDate>#{pub_date_str}</pubDate>
           </item>
         XML
       end

@@ -2,7 +2,10 @@ GEM
   remote: https://rubygems.org/
   specs:
     ansi (1.5.0)
+    chronic (0.10.2)
     thor (0.20.0)
+    whenever (0.10.0)
+      chronic (>= 0.6.3)
     zaru (0.2.0)
 
 PLATFORMS
@@ -11,6 +14,7 @@ PLATFORMS
 DEPENDENCIES
   ansi
   thor
+  whenever
   zaru
 
 BUNDLED WITH
