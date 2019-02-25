@@ -8,14 +8,19 @@ require 'yaml'
 
 require 'radikocast/rss'
 require 'radikocast/rec'
+require 'radikocast/logger'
 
 module Radikocast
   class CLI < Thor
-    DST_DIR = File.expand_path('../../../dst', __FILE__)
-
     desc "configure NAME, HOST", "Initialize config"
     def configure(name, host)
-      config = {'name' => name, 'host' => host}
+      config = {
+        'podcast' => {
+          'name' => name,
+          'host' => host,
+        },
+        'schedule' => []
+      }
       File.write('config.yml', YAML.dump(config))
     end
 
@@ -27,8 +32,9 @@ module Radikocast
     desc "rss", "Generate RSS file"
     def rss
       config = YAML.load(File.read('config.yml'))
-      xml = RSS.generate(DST_DIR, config['name'], config['host'])
-      File.write("#{DST_DIR}/feed.xml", xml)
+      dst = ENV['DST_DIR']
+      xml = RSS.generate(dst, config['name'], config['host'])
+      File.write(File.join(dst, "feed.xml"), xml)
     end
   end
 end

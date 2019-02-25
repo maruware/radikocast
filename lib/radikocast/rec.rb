@@ -1,6 +1,8 @@
 module Radikocast
     def self.rec(station_id, item_timecode)
-        o, e, s = Open3.capture3("#{ENV['RADIGO_PATH']} rec -id=#{station_id} -s=#{item_timecode}")
+        cmd = "#{ENV['RADIGO_PATH']} rec -id=#{station_id} -s=#{item_timecode}"
+        Radikocast.logger.debug(cmd)
+        o, e, s = Open3.capture3(cmd)
         STDERR.puts e if e
         puts o
   
@@ -15,17 +17,20 @@ module Radikocast
         title = info[2]
   
         Zaru.sanitize! title
+
+        dst_dir = ENV['DST_DIR']
+
   
-        FileUtils.mv(dst_line, "#{DST_DIR}")
+        FileUtils.mv(dst_line, dst_dir)
         audio_filename = File.basename(dst_line)
   
         meta = {
           year: y, month: m, day: d,
           title: title,
           audio_filename: audio_filename,
-          audio_size: File.size("#{DST_DIR}/#{audio_filename}")
+          audio_size: File.size(File.join(dst_dir, audio_filename))
         }
         meta_filename = File.basename(audio_filename, '.aac') + '.json'
-        File.write("#{DST_DIR}/#{meta_filename}", JSON.dump(meta))
+        File.write(File.join(dst_dir, meta_filename), JSON.dump(meta))
     end
 end
