@@ -1,0 +1,9 @@
+version: '2.3'
+services:
+  app:
+    build: .
+    command: bin/radikocast
+    environment:
+      - DST_DIR=./dst
+    volumes:
+      - .:/usr/src/app
