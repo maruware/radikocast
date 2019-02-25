@@ -1,2 +1,14 @@
-name: sample
-host: http://example.com
+---
+podcast:
+  name: sample
+  host: http://sample.s3-website-ap-northeast-1.amazonaws.com
+schedules:
+  - day: sunday
+    at: 01:00-04:00
+    station: LFR
+  - day: weekday
+    at: 19:00-20:00
+    station: TBS
+publish:
+  type: s3
+  bucket: sample
