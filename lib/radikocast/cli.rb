@@ -57,7 +57,7 @@ module Radikocast
 
     private
     def load_config
-      YAML.safe_load(File.read('config.yml'))
+      YAML.safe_load(File.read(ENV['CONFIG_PATH']))
     end
 
     def update_rss(name, host)
