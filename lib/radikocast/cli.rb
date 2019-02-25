@@ -11,6 +11,7 @@ require 'radikocast/rec'
 require 'radikocast/logger'
 require 'radikocast/schedule'
 require 'radikocast/program'
+require 'radikocast/s3'
 
 module Radikocast
   class CLI < Thor
@@ -34,26 +35,46 @@ module Radikocast
 
     desc 'schedule', 'Run scheduler'
     def schedule
+      config = load_config
       Radikocast::Schedule.run(config['schedules']) do |program|
-        # Radikocast.logger.info(program)
         Radikocast.rec(program)
-        update_rss
+        update_rss(config['podcast']['name'], config['podcast']['host'])
+        _publish(config)
       end
     end
 
     desc 'rss', 'Generate RSS file'
     def rss
-      update_rss
+      config = load_config
+      update_rss(config['podcast']['name'], config['podcast']['host'])
+    end
+
+    desc 'publish', 'Publish audio and RSS file'
+    def publish
+      config = load_config
+      _publish(config)
     end
 
     private
-    def config
+    def load_config
       YAML.safe_load(File.read('config.yml'))
     end
-    def update_rss
+
+    def update_rss(name, host)
       dst = ENV['DST_DIR']
-      xml = RSS.generate(dst, config['name'], config['host'])
+      xml = RSS.generate(dst, name, host)
       File.write(File.join(dst, 'feed.xml'), xml)
+    end
+
+    def _publish(config)
+      if config['publish']
+        case config['publish']['type']
+        when 's3'
+          Radikocast.sync_s3(ENV['DST_DIR'], config['publish']['bucket'])
+        else
+          throw Error.new(`No support publish type for #{config['publish']['type']}`)
+        end
+      end
     end
   end
 end

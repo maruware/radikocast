@@ -38,3 +38,5 @@ build/
 /dst/*
 !/dst/.keep
 config.yml
+
+.envrc

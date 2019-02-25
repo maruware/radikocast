@@ -20,7 +20,7 @@ module Radikocast
             <title>#{name}</title>
             <enclosure url="#{url}"
                        length="#{meta['audio_size']}"
-                       type="audio/mp4" />
+                       type="audio/aac" />
             <guid isPermaLink="true">#{url}</guid>
             <pubDate>#{pub_date_str}</pubDate>
           </item>

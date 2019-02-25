@@ -4,3 +4,4 @@ gem "thor"
 gem "zaru"
 gem "ansi"
 gem "rufus-scheduler"
+gem 'aws-sdk-s3'
