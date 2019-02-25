@@ -4,7 +4,7 @@ module Radikocast
         Radikocast.logger.debug(cmd)
         o, e, s = Open3.capture3(cmd)
         STDERR.puts e if e
-        puts o
+        Radikocast.logger.info(o)
   
         y = item_timecode[0..3]
         m = item_timecode[4..5]
