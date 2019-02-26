@@ -32,6 +32,7 @@ module Radikocast
       <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
         <channel>
           <title>#{title}</title>
+          <language>ja</language>
           #{items}
         </channel>
       </rss>
