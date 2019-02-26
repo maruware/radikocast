@@ -17,7 +17,7 @@ module Radikocast
       bucket: bucket,
       key: 'feed.xml',
       body: File.open(File.join(src_dir, 'feed.xml')),
-      content_type: 'application/rss+xml',
+      content_type: 'application/rss+xml; charset=utf-8',
       acl: 'public-read'
     )
     Radikocast.logger.debug('put s3 feed.xml')
