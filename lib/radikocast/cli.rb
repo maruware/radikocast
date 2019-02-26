@@ -46,7 +46,7 @@ module Radikocast
     desc 'rss', 'Generate RSS file'
     def rss
       config = load_config
-      update_rss(config['podcast']['name'], config['podcast']['host'])
+      update_rss(config['podcast']['name'], config['podcast']['host'], config['podcast']['image'])
     end
 
     desc 'publish', 'Publish audio and RSS file'
@@ -60,9 +60,9 @@ module Radikocast
       YAML.safe_load(File.read(ENV['CONFIG_PATH']))
     end
 
-    def update_rss(name, host)
+    def update_rss(name, host, image)
       dst = ENV['DST_DIR']
-      xml = RSS.generate(dst, name, host)
+      xml = RSS.generate(dst, name, host, image)
       File.write(File.join(dst, 'feed.xml'), xml)
     end
 
