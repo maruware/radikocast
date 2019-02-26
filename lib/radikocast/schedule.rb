@@ -5,10 +5,10 @@ module Radikocast
     class << self
       def run(schedule_configs)
         schedules = parse_all(schedule_configs)
-        Radikocast.logger.debug(schedules)
 
         scheduler = Rufus::Scheduler.new
         schedules.each do |schedule|
+          Radikocast.logger.debug(schedule)
           scheduler.cron schedule[:execution_at] do
             today = Date.today
             yield Radikocast::Program.new(
