@@ -38,7 +38,7 @@ module Radikocast
       config = load_config
       Radikocast::Schedule.run(config['schedules']) do |program|
         Radikocast.rec(program)
-        update_rss(config['podcast']['name'], config['podcast']['host'])
+        update_rss(config['podcast']['name'], config['podcast']['host'], config['podcast']['image'])
         _publish(config)
       end
     end
