@@ -40,3 +40,4 @@ config.yml
 radikocast
 
 releases
+github_token
