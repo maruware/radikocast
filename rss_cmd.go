@@ -48,5 +48,7 @@ func (c *rssCommand) Help() string {
 	return strings.TrimSpace(`
 Usage: radikocast rss [options]
   Generate podcast RSS
+Options:
+  -config,c=filepath	   Config file path
 `)
 }

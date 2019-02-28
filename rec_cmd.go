@@ -63,6 +63,7 @@ Options:
   -id=name                 Station id
   -start,s=201610101000    Start time
   -area,a=name             Area id
+  -config,c=filepath	   Config file path
 `)
 }
 

@@ -102,6 +102,6 @@ func (c *scheduleCommand) Help() string {
 Usage: radikocast schedule [options]
   Schedule programs
 Options:
-  -d   daemon mode
+  -config,c=filepath	   Config file path
 `)
 }
