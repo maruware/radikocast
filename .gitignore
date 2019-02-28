@@ -1,42 +1,40 @@
-###Ruby###
+# Build and Release Folders
+bin-debug/
+bin-release/
+[Oo]bj/
+[Bb]in/
 
-*.gem
-*.rbc
-/.config
-/coverage/
-/InstalledFiles
-/pkg/
-/spec/reports/
-/test/tmp/
-/test/version_tmp/
-/tmp/
+# Other files and folders
+.settings/
 
-## Specific to RubyMotion:
-.dat*
-.repl_history
-build/
+# Executables
+*.swf
+*.air
+*.ipa
+*.apk
 
-## Documentation cache and generated files:
-/.yardoc/
-/_yardoc/
-/doc/
-/rdoc/
+# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
+# should NOT be excluded as they contain compiler settings and other important
+# information for Eclipse / Flash Builder.
 
-## Environment normalisation:
-/.bundle/
-/lib/bundler/man/
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# for a library or gem, you might want to ignore these files since the code is
-# intended to run in multiple environments; otherwise, check them in:
-# Gemfile.lock
-# .ruby-version
-# .ruby-gemset
+# Test binary, built with `go test -c`
+*.test
 
-# unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
-.rvmrc
-
-/dst/*
-!/dst/.keep
-config.yml
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
 .envrc
+
+
+output
+dst
+config.yml
+
+radikocast

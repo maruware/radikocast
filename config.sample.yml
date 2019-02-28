@@ -1,14 +1,15 @@
 ---
+workspace:
+  output_dir: output
 podcast:
-  name: sample
-  host: http://sample.s3-website-ap-northeast-1.amazonaws.com
-schedules:
-  - day: sunday
-    at: 01:00-04:00
-    station: LFR
-  - day: weekday
-    at: 19:00-20:00
-    station: TBS
+  title: sample
+  host: http://example.com
+  image: https://example.com/image.jpg
 publish:
   type: s3
   bucket: sample
+schedules:
+  # オードリー
+  - day: sunday
+    at: 01:00-04:00
+    station: LFR
