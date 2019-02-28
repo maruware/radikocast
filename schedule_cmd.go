@@ -102,6 +102,6 @@ func (c *scheduleCommand) Help() string {
 Usage: radikocast schedule [options]
   Schedule programs
 Options:
-  -config,c=filepath	   Config file path
+  -config,c=filepath	   Config file path (default: config.yml)
 `)
 }

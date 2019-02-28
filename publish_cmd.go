@@ -49,6 +49,6 @@ func (c *publishCommand) Help() string {
 Usage: radikocast publish
   Publish podcast
 Options:
-  -config,c=filepath                 Config file path
+  -config,c=filepath                 Config file path (default: config.yml)
 `)
 }

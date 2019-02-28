@@ -49,6 +49,6 @@ func (c *rssCommand) Help() string {
 Usage: radikocast rss [options]
   Generate podcast RSS
 Options:
-  -config,c=filepath	   Config file path
+  -config,c=filepath	   Config file path (default: config.yml)
 `)
 }
