@@ -13,3 +13,13 @@ schedules:
   - day: sunday
     at: 01:00-04:00
     station: LFR
+  # アトロク
+  - day: weekday
+    at: 18:00-19:00
+    station: TBS
+  - day: weekday
+    at: 19:00-20:00
+    station: TBS
+  - day: weekday
+    at: 20:00-21:00
+    station: TBS
