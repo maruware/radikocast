@@ -1,0 +1,13 @@
+version: '3'
+services:
+  radikocast:
+    build: .
+    ports:
+      - 8080:8080
+    volumes:
+      - ./config.sample.yml:/config.yml
+      - ./tmp:/output
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
