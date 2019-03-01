@@ -41,3 +41,6 @@ radikocast
 
 releases
 github_token
+
+tmp/*
+!tmp/.keep
