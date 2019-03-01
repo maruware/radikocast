@@ -22,6 +22,16 @@ func TestCron(t *testing.T) {
 	if actual := schedule.Cron(); actual != expect {
 		t.Errorf("cron is expected %s, but %s", expect, actual)
 	}
+	schedule = ConfigSchedule{Day: "wednesday", At: "27:00-28:00", Station: "LFR"}
+	expect = "5 4 * * 4"
+	if actual := schedule.Cron(); actual != expect {
+		t.Errorf("cron is expected %s, but %s", expect, actual)
+	}
+	schedule = ConfigSchedule{Day: "saturday", At: "27:00-28:00", Station: "LFR"}
+	expect = "5 4 * * 0"
+	if actual := schedule.Cron(); actual != expect {
+		t.Errorf("cron is expected %s, but %s", expect, actual)
+	}
 }
 
 func TestStartCode(t *testing.T) {
@@ -29,6 +39,13 @@ func TestStartCode(t *testing.T) {
 	baseTime := time.Date(2010, 2, 3, 2, 5, 0, 0, time.UTC)
 	schedule = ConfigSchedule{Day: "weekday", At: "01:15-02:00", Station: "LFR"}
 	expect := "20100203011500"
+	if actual := schedule.StartCode(&baseTime); actual != expect {
+		t.Errorf("start code is expected %s, but %s", expect, actual)
+	}
+
+	baseTime = time.Date(2010, 2, 7, 3, 5, 0, 0, time.UTC)
+	schedule = ConfigSchedule{Day: "saturday", At: "25:00-27:00", Station: "LFR"}
+	expect = "20100207010000"
 	if actual := schedule.StartCode(&baseTime); actual != expect {
 		t.Errorf("start code is expected %s, but %s", expect, actual)
 	}

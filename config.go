@@ -106,6 +106,8 @@ func (at *ConfigScheduleAt) ParseToTimeSpan() (*TimeSpan, error) {
 }
 
 func (schedule *ConfigSchedule) Cron() string {
+	span, _ := schedule.At.ParseToTimeSpan()
+
 	var dow string
 	switch schedule.Day {
 	case "everyday":
@@ -113,17 +115,20 @@ func (schedule *ConfigSchedule) Cron() string {
 	case "weekday":
 		dow = "1-5"
 	default:
-		w := daysOfWeek[schedule.Day]
-		dow = fmt.Sprintf("%d", w)
+		w := int(daysOfWeek[schedule.Day])
+		w = (w + (span.EndH / 24)) % 7
+		dow = strconv.Itoa(w)
 	}
 
-	span, _ := schedule.At.ParseToTimeSpan()
+	m := span.EndM + 5 // wait few minutes after end
+	h := span.EndH % 24
 
-	return fmt.Sprintf("%d %d * * %s", span.EndM+5, span.EndH, dow)
+	return fmt.Sprintf("%d %d * * %s", m, h, dow)
 }
 
+// StartCode is assumed executing after ending program.
 func (schedule *ConfigSchedule) StartCode(baseTime *time.Time) string {
 	span, _ := schedule.At.ParseToTimeSpan()
-	t := time.Date(baseTime.Year(), baseTime.Month(), baseTime.Day(), span.StartH, span.StartM, 0, 0, time.UTC)
+	t := time.Date(baseTime.Year(), baseTime.Month(), baseTime.Day(), span.StartH%24, span.StartM, 0, 0, time.UTC)
 	return t.Format("20060102150405")
 }
