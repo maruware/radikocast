@@ -26,7 +26,7 @@ func (c *publishCommand) Run(args []string) int {
 	config, err := LoadConfig(configPath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf(
-			"Failed to load config"))
+			"Failed to load config %s", configPath))
 		return 1
 	}
 	// TODO: support other publish type
