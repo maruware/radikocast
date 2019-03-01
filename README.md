@@ -27,6 +27,8 @@ The folloing environment variables are required for publishing to s3.
 * AWS_SECRET_ACCESS_KEY
 * AWS_REGION
 
+or setting IAM Role.
+
 ### schedule
 
 Schedule recording and publish reservations.
