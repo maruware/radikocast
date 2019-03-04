@@ -10,7 +10,7 @@ require (
 	github.com/gin-contrib/sse v0.0.0-20190226023149-996076df5b33 // indirect
 	github.com/gin-gonic/gin v1.3.0
 	github.com/golang/protobuf v1.2.0 // indirect
-	github.com/grafov/m3u8 v0.6.1 // indirect
+	github.com/grafov/m3u8 v0.6.2-0.20161113212024-7b864e5a29bf // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/cli v1.0.0

@@ -22,6 +22,8 @@ github.com/golang/protobuf v1.2.0 h1:P3YflyNX/ehuJFLhxviNdFxQPkGK5cDcApsge1SqnvM
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/grafov/m3u8 v0.6.1 h1:RC2QCbV39L6xqWN05RrizRlQhBRmwOq08fOuB5/+Dp0=
 github.com/grafov/m3u8 v0.6.1/go.mod h1:PdjzaU/pJUo4jTIn2rcgMFs+HqBGl/sPJLr8BI0Xq/I=
+github.com/grafov/m3u8 v0.6.2-0.20161113212024-7b864e5a29bf h1:BgEWyln4gu8xJn9Ie9bNVvRnjVyM4YC+l9uHmzh68hk=
+github.com/grafov/m3u8 v0.6.2-0.20161113212024-7b864e5a29bf/go.mod h1:PdjzaU/pJUo4jTIn2rcgMFs+HqBGl/sPJLr8BI0Xq/I=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=
