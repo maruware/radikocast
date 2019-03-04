@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/bamzi/jobrunner"
-	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/cli"
 )
 
@@ -40,10 +39,8 @@ func (c *scheduleCommand) Run(args []string) int {
 			Config:   config,
 		})
 	}
-	gin.SetMode(gin.ReleaseMode)
-	routes := gin.Default()
-	routes.GET("/jobrunner/json", JobJson)
-	routes.Run(":8080")
+
+	select {}
 	return 0
 }
 
@@ -81,16 +78,6 @@ func (job RecRssPublish) Run() {
 		return
 	}
 	fmt.Println("Rss published")
-}
-
-func JobJson(c *gin.Context) {
-	// returns a map[string]interface{} that can be marshalled as JSON
-	c.JSON(200, jobrunner.StatusJson())
-}
-
-func JobHtml(c *gin.Context) {
-	// Returns the template data pre-parsed
-	c.HTML(200, "", jobrunner.StatusPage())
 }
 
 func (c *scheduleCommand) Synopsis() string {
