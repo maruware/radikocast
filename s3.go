@@ -62,13 +62,16 @@ func syncObject(svc *s3.S3, bucket *string, filePath string, contentType string,
 		return false, err
 	}
 
-	svc.PutObject(&s3.PutObjectInput{
+	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket:      bucket,
 		Key:         &key,
 		Body:        f,
 		ContentType: &contentType,
 		ACL:         aws.String("public-read"),
 	})
+	if err != nil {
+		return false, err
+	}
 
 	fmt.Println("[Put]", key)
 
