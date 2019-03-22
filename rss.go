@@ -32,7 +32,7 @@ func GenerateRss(config *ConfigPodcast, dir string) podcast.Podcast {
 }
 
 func WriteRss(rss podcast.Podcast, dst string) error {
-	file, err := os.OpenFile(dst, os.O_WRONLY, os.ModePerm)
+	file, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer file.Close()
 	if err != nil {
 		return err
