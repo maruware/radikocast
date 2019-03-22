@@ -33,7 +33,7 @@ func (c *publishCommand) Run(args []string) int {
 	err = SyncDirToS3(config.Workspace.OutputDirAbs(), config.Publish.Bucket)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf(
-			"Failed to publish s3"))
+			"Failed to publish s3 %s", err))
 		return 1
 	}
 
