@@ -27,6 +27,14 @@ func SyncDirToS3(dir string, bucket string) error {
 		}
 	}
 
+	jsonPaths, _ := filepath.Glob(filepath.Join(dir, "*.json"))
+	for _, jsonPath := range jsonPaths {
+		_, err := syncObject(svc, &bucket, jsonPath, "application/json", contents)
+		if err != nil {
+			return err
+		}
+	}
+
 	xmlPaths, _ := filepath.Glob(filepath.Join(dir, "*.xml"))
 	for _, xmlPath := range xmlPaths {
 		_, err := syncObject(svc, &bucket, xmlPath, "application/rss+xml; charset=utf-8", contents)
