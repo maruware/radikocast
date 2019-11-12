@@ -16,7 +16,6 @@ type recCommand struct {
 
 func (c *recCommand) Run(args []string) int {
 	var stationID, start, areaID string
-	var configPath string
 
 	f := flag.NewFlagSet("rec", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
@@ -24,16 +23,13 @@ func (c *recCommand) Run(args []string) int {
 	f.StringVar(&start, "s", "", "start")
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
-	f.StringVar(&configPath, "config", defaultConfigPath, "config")
-	f.StringVar(&configPath, "c", defaultConfigPath, "config")
+
+	var bucket string
+
+	f.StringVar(&bucket, "bucket", "", "bucket")
+
 	f.Usage = func() { c.ui.Error(c.Help()) }
 	if err := f.Parse(args); err != nil {
-		return 1
-	}
-	config, err := LoadConfig(configPath)
-	if err != nil {
-		c.ui.Error(fmt.Sprintf(
-			"Failed to load config %s", configPath))
 		return 1
 	}
 
@@ -42,7 +38,7 @@ func (c *recCommand) Run(args []string) int {
 		return 1
 	}
 	c.ui.Output("Now downloading.. ")
-	code, err := RecProgram(stationID, start, areaID, config.Workspace.OutputDirAbs())
+	code, err := RecProgram(stationID, start, areaID, bucket)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Failed to rec: %s", err))
 		return 1

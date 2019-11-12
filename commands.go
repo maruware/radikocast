@@ -35,13 +35,3 @@ func RssCommandFactory() (cli.Command, error) {
 		ui: Ui,
 	}, nil
 }
-func PublishCommandFactory() (cli.Command, error) {
-	return &publishCommand{
-		ui: Ui,
-	}, nil
-}
-func ScheduleCommandFactory() (cli.Command, error) {
-	return &scheduleCommand{
-		ui: Ui,
-	}, nil
-}

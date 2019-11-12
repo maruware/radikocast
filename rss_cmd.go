@@ -13,29 +13,30 @@ type rssCommand struct {
 }
 
 func (c *rssCommand) Run(args []string) int {
-	var configPath string
+	var title, host, image, bucket, feed string
 	f := flag.NewFlagSet("rss", flag.ContinueOnError)
-	f.StringVar(&configPath, "config", defaultConfigPath, "config")
-	f.StringVar(&configPath, "c", defaultConfigPath, "config")
+	f.StringVar(&title, "title", "", "title")
+	f.StringVar(&host, "host", "", "host")
+	f.StringVar(&image, "image", "", "image")
+	f.StringVar(&bucket, "bucket", "", "bucket")
+	f.StringVar(&feed, "feed", "", "feed")
+
 	f.Usage = func() { c.ui.Error(c.Help()) }
 	if err := f.Parse(args); err != nil {
 		return 1
 	}
 
-	config, err := LoadConfig(configPath)
+	rss, err := GenerateRss(title, host, image, bucket)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf(
-			"Failed to load config %s", configPath))
 		return 1
 	}
-	rss := GenerateRss(config.Podcast, config.Workspace.OutputDir)
-	err = WriteRss(rss, config.Workspace.FeedPath())
+	err = PutRss(rss, bucket, feed)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Failed to write rss %s", err))
 		return 1
 	}
 
-	c.ui.Output(fmt.Sprintf("Updated %s", config.Workspace.FeedPath()))
+	c.ui.Output(fmt.Sprintf("Updated %s", feed))
 
 	return 0
 }

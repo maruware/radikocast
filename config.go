@@ -2,44 +2,23 @@ package radikocast
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	yaml "gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Podcast   *ConfigPodcast    `yaml:"podcast"`
-	Schedules []*ConfigSchedule `yaml:"schedules"`
-	Publish   *ConfigPublish    `yaml:"publish"`
-	Workspace *ConfigWorkspace  `yaml:"workspace"`
+	Title  string `yaml:"title"`
+	Host   string `yaml:"host"`
+	Image  string `yaml:"image"`
+	Bucket string `yaml:"bucket"`
 }
 
-type ConfigWorkspace struct {
-	OutputDir string `yaml:"output_dir"`
+func (c *Config) FeedPath() string {
+	return "feed.xml"
 }
 
-func (c *ConfigWorkspace) OutputDirAbs() string {
-	if !filepath.IsAbs(c.OutputDir) {
-		wd, _ := os.Getwd()
-		return filepath.Join(wd, c.OutputDir)
-	}
-	return c.OutputDir
-}
-func (c *ConfigWorkspace) FeedPath() string {
-	return filepath.Join(c.OutputDir, "feed.xml")
-}
-
-type ConfigPodcast struct {
-	Title string `yaml:"title"`
-	Host  string `yaml:"host"`
-	Image string `yaml:"image"`
-}
 type ConfigSchedule struct {
 	Day     string           `yaml:"day"`
 	At      ConfigScheduleAt `yaml:"at"`
@@ -47,26 +26,15 @@ type ConfigSchedule struct {
 	Area    string           `yaml:"area"`
 }
 
-type ConfigPublish struct {
-	PublishType string `yaml:"type"`
-	Bucket      string `yaml:"bucket"`
-}
-
 type ConfigScheduleAt string
 
-func LoadConfig(configPath string) (*Config, error) {
-	buf, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, err
+func NewConfig(title string, host string, image string, bucket string) *Config {
+	return &Config{
+		Title:  title,
+		Host:   host,
+		Image:  image,
+		Bucket: bucket,
 	}
-
-	var config Config
-	err = yaml.Unmarshal(buf, &config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &config, nil
 }
 
 var daysOfWeek = map[string]time.Weekday{}
