@@ -12,8 +12,9 @@ func main() {
 	c := cli.NewCLI("radikocast", "1.0.0")
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
-		"rec": radikocast.RecCommandFactory,
-		"rss": radikocast.RssCommandFactory,
+		"rec":          radikocast.RecCommandFactory,
+		"rec_schedule": radikocast.RecScheduleCommandFactory,
+		"rss":          radikocast.RssCommandFactory,
 	}
 
 	exitStatus, err := c.Run()

@@ -35,3 +35,9 @@ func RssCommandFactory() (cli.Command, error) {
 		ui: Ui,
 	}, nil
 }
+
+func RecScheduleCommandFactory() (cli.Command, error) {
+	return &recScheduleCommand{
+		ui: Ui,
+	}, nil
+}
