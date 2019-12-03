@@ -16,15 +16,21 @@ import (
 	"github.com/yyoshiki41/radigo"
 )
 
-func RecProgram(stationID string, start string, areaID string, outputDir string) (*string, error) {
+func RecProgram(stationID string, start string, areaID string, bucket string) (*string, error) {
 	fmt.Printf("Rec %s %s\n", stationID, start)
 	startTime, err := time.ParseInLocation(datetimeLayout, start, location)
 	if err != nil {
 		return nil, err
 	}
 
+	dir, err := ioutil.TempDir("", "radikocast")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(dir)
+
 	output := radigo.OutputConfig{
-		DirFullPath:  outputDir,
+		DirFullPath:  dir,
 		FileBaseName: fmt.Sprintf("%s-%s", startTime.In(location).Format(datetimeLayout), stationID),
 		FileFormat:   radigo.AudioFormatAAC,
 	}
@@ -103,6 +109,11 @@ func RecProgram(stationID string, start string, areaID string, outputDir string)
 
 	jsonByte, _ := json.Marshal(*metadata)
 	ioutil.WriteFile(metadataPath, jsonByte, os.ModePerm)
+
+	// put s3
+	storage := NewS3(bucket)
+	storage.PutObjectFromFile(output.AbsPath(), "audio/aac")
+	storage.PutObjectFromFile(metadataPath, "application/json")
 
 	return &output.FileBaseName, nil
 }

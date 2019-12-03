@@ -3,29 +3,29 @@ package radikocast
 import (
 	"flag"
 	"fmt"
-	"log"
-	"os"
 	"strings"
+	"time"
 
 	"github.com/mitchellh/cli"
 )
 
-type recCommand struct {
+type recScheduleCommand struct {
 	ui cli.Ui
 }
 
-func (c *recCommand) Run(args []string) int {
-	var stationID, start, areaID, bucket string
+func (c *recScheduleCommand) Run(args []string) int {
+	var stationID, day, at, areaID, bucket string
 
-	f := flag.NewFlagSet("rec", flag.ContinueOnError)
+	f := flag.NewFlagSet("rec_schedule", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
-	f.StringVar(&start, "start", "", "start")
-	f.StringVar(&start, "s", "", "start")
+	f.StringVar(&day, "day", "", "day")
+	f.StringVar(&at, "at", "", "at")
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
 	f.StringVar(&bucket, "bucket", "", "bucket")
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
+
 	if err := f.Parse(args); err != nil {
 		return 1
 	}
@@ -34,6 +34,21 @@ func (c *recCommand) Run(args []string) int {
 		c.ui.Error("StationID is empty.")
 		return 1
 	}
+	if day == "" {
+		c.ui.Error("day is empty")
+		return 1
+	}
+	if at == "" {
+		c.ui.Error("at is empty")
+		return 1
+	}
+
+	start, err := findLastProgram(day, at, time.Now())
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("Bad day or at: %v", err))
+		return 1
+	}
+
 	c.ui.Output("Now downloading.. ")
 	code, err := RecProgram(stationID, start, areaID, bucket)
 	if err != nil {
@@ -44,27 +59,18 @@ func (c *recCommand) Run(args []string) int {
 	return 0
 }
 
-func (c *recCommand) Synopsis() string {
+func (c *recScheduleCommand) Synopsis() string {
 	return "Record a radiko program"
 }
 
-func (c *recCommand) Help() string {
+func (c *recScheduleCommand) Help() string {
 	return strings.TrimSpace(`
 Usage: radikocast rec [options]
   Record a radiko program.
 Options:
   -id=name                 Station id
-  -start,s=201610101000    Start time
+  -day=day_expression      Day expression (ex. monday)
   -area,a=name             Area id
   -bucket=bucketname	   S3 bucket name
 `)
-}
-
-func fileSize(path string) int64 {
-	fi, err := os.Stat(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return fi.Size()
 }
