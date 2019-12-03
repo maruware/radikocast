@@ -12,33 +12,7 @@ Available commands are:
     publish     Publish podcast
     rec         Record a radiko program
     rss         Generate podcast RSS
-    schedule    Schedule programs
-```
-
-All commands need config yaml file.
-### config yaml format
-
-See [config.sample.yml](config.sample.yml)
-
-Currently, only s3 is supported for publishing.  
-The folloing environment variables are required for publishing to s3.
-
-* AWS_ACCESS_KEY_ID
-* AWS_SECRET_ACCESS_KEY
-* AWS_REGION
-
-or setting IAM Role.
-
-### schedule
-
-Schedule recording and publish reservations.
-
-```bash
-$ radikocast schedule -h
-Usage: radikocast schedule [options]
-  Schedule programs
-Options:
-  -config,c=filepath       Config file path (default: config.yml)
+    rec_schedule    Rec a program by schedule expression.
 ```
 
 ### rec
@@ -53,7 +27,23 @@ Options:
   -id=name                 Station id
   -start,s=201610101000    Start time
   -area,a=name             Area id
-  -config,c=filepath       Config file path (default: config.yml)
+  -bucket=bucketname	   S3 bucket name
+```
+
+### rec_schedule
+
+Record a radiko program by schedule expression.
+
+```bash
+$ radikocast rec_schedule -h
+Usage: radikocast rec_schedule [options]
+  Record a radiko program.
+Options:
+  -id=name                 Station id
+  -day=wednesday           everyday or weekday, sunday, monday, ..., saturday
+  -at=13:00
+  -area,a=name             Area id
+  -bucket=bucketname	   S3 bucket name
 ```
 
 ### rss
@@ -65,17 +55,11 @@ $ radikocast rss -h
 Usage: radikocast rss [options]
   Generate podcast RSS
 Options:
-  -config,c=filepath       Config file path (default: config.yml) 
-```
-
-### publish
-
-```bash
-$ radikocast publish -h
-Usage: radikocast publish
-  Publish podcast
-Options:
-  -config,c=filepath       Config file path (default: config.yml)
+  -title title
+  -host host
+  -image image
+  -bucket bucket
+  -feed feed
 ```
 
 ## Installation

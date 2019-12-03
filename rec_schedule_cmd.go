@@ -14,7 +14,7 @@ type recScheduleCommand struct {
 }
 
 func (c *recScheduleCommand) Run(args []string) int {
-	var stationID, day, at, areaID string
+	var stationID, day, at, areaID, bucket string
 
 	f := flag.NewFlagSet("rec_schedule", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
@@ -22,9 +22,6 @@ func (c *recScheduleCommand) Run(args []string) int {
 	f.StringVar(&at, "at", "", "at")
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
-
-	var bucket string
-
 	f.StringVar(&bucket, "bucket", "", "bucket")
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
@@ -52,10 +49,6 @@ func (c *recScheduleCommand) Run(args []string) int {
 		return 1
 	}
 
-	if stationID == "" {
-		c.ui.Error("StationID is empty.")
-		return 1
-	}
 	c.ui.Output("Now downloading.. ")
 	code, err := RecProgram(stationID, start, areaID, bucket)
 	if err != nil {
@@ -76,8 +69,8 @@ Usage: radikocast rec [options]
   Record a radiko program.
 Options:
   -id=name                 Station id
-  -start,s=201610101000    Start time
+  -day=day_expression      Day expression (ex. monday)
   -area,a=name             Area id
-  -config,c=filepath	   Config file path (default: config.yml)
+  -bucket=bucketname	   S3 bucket name
 `)
 }

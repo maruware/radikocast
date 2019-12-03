@@ -15,7 +15,7 @@ type recCommand struct {
 }
 
 func (c *recCommand) Run(args []string) int {
-	var stationID, start, areaID string
+	var stationID, start, areaID, bucket string
 
 	f := flag.NewFlagSet("rec", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
@@ -23,9 +23,6 @@ func (c *recCommand) Run(args []string) int {
 	f.StringVar(&start, "s", "", "start")
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
-
-	var bucket string
-
 	f.StringVar(&bucket, "bucket", "", "bucket")
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
@@ -59,7 +56,7 @@ Options:
   -id=name                 Station id
   -start,s=201610101000    Start time
   -area,a=name             Area id
-  -config,c=filepath	   Config file path (default: config.yml)
+  -bucket=bucketname	   S3 bucket name
 `)
 }
 
