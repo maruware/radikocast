@@ -108,12 +108,22 @@ func RecProgram(stationID string, start string, areaID string, bucket string) (*
 	metadataPath := strings.Replace(output.AbsPath(), ".aac", ".json", 1)
 
 	jsonByte, _ := json.Marshal(*metadata)
-	ioutil.WriteFile(metadataPath, jsonByte, os.ModePerm)
+	err = ioutil.WriteFile(metadataPath, jsonByte, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 
 	// put s3
+	fmt.Printf("bucket: %s\n", bucket)
 	storage := NewS3(bucket)
-	storage.PutObjectFromFile(output.AbsPath(), "audio/aac")
-	storage.PutObjectFromFile(metadataPath, "application/json")
+	err = storage.PutObjectFromFile(output.AbsPath(), "audio/aac")
+	if err != nil {
+		return nil, err
+	}
+	err = storage.PutObjectFromFile(metadataPath, "application/json")
+	if err != nil {
+		return nil, err
+	}
 
 	return &output.FileBaseName, nil
 }

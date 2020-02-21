@@ -45,7 +45,9 @@ func GenerateRss(title string, host string, image string, bucket string) (*podca
 		}
 
 		item := generateItemNode(&metadata, host)
-		feed.AddItem(*item)
+		if _, err := feed.AddItem(*item); err != nil {
+			return nil, err
+		}
 	}
 
 	return &feed, nil
@@ -58,7 +60,10 @@ func PutRss(rss *podcast.Podcast, bucket string, feedName string) error {
 	}
 
 	storage := NewS3(bucket)
-	storage.PutObject(feedName, buf, "application/rss+xml; charset=utf-8")
+	err := storage.PutObject(feedName, buf, "application/rss+xml; charset=utf-8")
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
