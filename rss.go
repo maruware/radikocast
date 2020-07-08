@@ -46,7 +46,7 @@ func GenerateRss(title string, host string, image string, bucket string) (*podca
 
 		item := generateItemNode(&metadata, host)
 		if _, err := feed.AddItem(*item); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Item %s error: %w", metadata.AudioFilename, err)
 		}
 	}
 
@@ -70,13 +70,19 @@ func PutRss(rss *podcast.Podcast, bucket string, feedName string) error {
 
 func generateItemNode(metadata *MetaData, host string) *podcast.Item {
 	url := fmt.Sprintf("%s/%s", host, metadata.AudioFilename)
+
+	// Description required
+	desc := metadata.Desc
+	if len(desc) <= 0 {
+		desc = metadata.Title
+	}
 	return &podcast.Item{
 		Title: metadata.Title,
 		Enclosure: &podcast.Enclosure{
 			URL:    url,
 			Length: metadata.AudioSize,
 		},
-		Description: metadata.Desc,
+		Description: desc,
 		PubDate:     &metadata.StartAt,
 		GUID:        metadata.AudioFilename,
 	}
