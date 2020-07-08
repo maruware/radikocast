@@ -23,16 +23,18 @@ func (c *rssCommand) Run(args []string) int {
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
 	if err := f.Parse(args); err != nil {
+		c.ui.Error(fmt.Sprintf("Bad args. %s", err))
 		return 1
 	}
 
 	rss, err := GenerateRss(title, host, image, bucket)
 	if err != nil {
+		c.ui.Error(fmt.Sprintf("Failed to generate rss. %s", err))
 		return 1
 	}
 	err = PutRss(rss, bucket, feed)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Failed to write rss %s", err))
+		c.ui.Error(fmt.Sprintf("Failed to write rss. %s", err))
 		return 1
 	}
 
