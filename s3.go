@@ -142,13 +142,25 @@ func (s *S3) PutObject(key string, content io.Reader, contentType string) error 
 }
 
 func (s *S3) Scan() ([]*s3.Object, error) {
-	res, err := s.svc.ListObjectsV2(&s3.ListObjectsV2Input{
-		Bucket: aws.String(s.Bucket),
-	})
-	if err != nil {
-		return nil, err
+	contents := []*s3.Object{}
+	var continuationToken *string = nil
+	for {
+		res, err := s.svc.ListObjectsV2(&s3.ListObjectsV2Input{
+			Bucket:            aws.String(s.Bucket),
+			ContinuationToken: continuationToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+		contents = append(contents, res.Contents...)
+		if *res.IsTruncated {
+			continuationToken = res.NextContinuationToken
+		} else {
+			break
+		}
 	}
-	return res.Contents, nil
+
+	return contents, nil
 }
 
 func (s *S3) GetObject(o *s3.Object) (*s3.GetObjectOutput, error) {
