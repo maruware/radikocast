@@ -13,8 +13,8 @@ require (
 	github.com/olekukonko/tablewriter v0.0.1
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/yyoshiki41/go-radiko v0.6.0
-	github.com/yyoshiki41/radigo v0.8.1
+	github.com/yyoshiki41/go-radiko v0.7.0
+	github.com/yyoshiki41/radigo v0.10.0
 	golang.org/x/net v0.0.0-20190227022144-312bce6e941f // indirect
 	golang.org/x/text v0.3.0 // indirect
 )
