@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine AS build_base
+FROM golang:1.16-alpine AS build_base
 
 # Install tools required to build the project
 RUN apk add --no-cache ca-certificates \
