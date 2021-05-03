@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -44,7 +45,10 @@ func GenerateRss(title string, host string, image string, bucket string) (*podca
 			return nil, err
 		}
 
-		item := generateItemNode(&metadata, host)
+		item, err := generateItemNode(&metadata, host)
+		if err != nil {
+			return nil, err
+		}
 		if _, err := feed.AddItem(*item); err != nil {
 			return nil, fmt.Errorf("Item %s error: %w", metadata.AudioFilename, err)
 		}
@@ -68,8 +72,20 @@ func PutRss(rss *podcast.Podcast, bucket string, feedName string) error {
 	return nil
 }
 
-func generateItemNode(metadata *MetaData, host string) *podcast.Item {
+func generateItemNode(metadata *MetaData, host string) (*podcast.Item, error) {
 	url := fmt.Sprintf("%s/%s", host, metadata.AudioFilename)
+	ext := filepath.Ext(metadata.AudioFilename)
+	var etype podcast.EnclosureType
+	switch ext {
+	case ".aac":
+		etype = podcast.M4A
+	case ".m4a":
+		etype = podcast.M4A
+	case ".mp3":
+		etype = podcast.MP3
+	default:
+		return nil, fmt.Errorf("no support file format: %s", ext)
+	}
 
 	// Description required
 	desc := metadata.Desc
@@ -81,9 +97,10 @@ func generateItemNode(metadata *MetaData, host string) *podcast.Item {
 		Enclosure: &podcast.Enclosure{
 			URL:    url,
 			Length: metadata.AudioSize,
+			Type:   etype,
 		},
 		Description: desc,
 		PubDate:     &metadata.StartAt,
 		GUID:        metadata.AudioFilename,
-	}
+	}, nil
 }

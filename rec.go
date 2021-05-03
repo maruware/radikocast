@@ -70,7 +70,7 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 	output := radigo.OutputConfig{
 		DirFullPath:  td,
 		FileBaseName: fmt.Sprintf("%s-%s", startTime.In(location).Format(datetimeLayout), stationID),
-		FileFormat:   radigo.AudioFormatAAC,
+		FileFormat:   radigo.AudioFormatMP3,
 	}
 
 	if err := output.SetupDir(); err != nil {
@@ -123,7 +123,7 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 		return nil, err
 	}
 
-	err = os.Rename(concatedFile, output.AbsPath())
+	err = radigo.ConvertAACtoMP3(ctx, concatedFile, output.AbsPath())
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 		return nil, fmt.Errorf("metadata error: %w", err)
 	}
 
-	metadataPath := strings.Replace(output.AbsPath(), ".aac", ".json", 1)
+	metadataPath := strings.Replace(output.AbsPath(), ".mp3", ".json", 1)
 	if err := writeJson(&metadata, metadataPath); err != nil {
 		return nil, fmt.Errorf("failed to write metadata: %w", err)
 	}
@@ -171,7 +171,7 @@ func writeJson(data interface{}, dst string) error {
 
 func putProgramToS3(audioPath string, metadataPath string, bucket string) error {
 	storage := NewS3(bucket)
-	err := storage.PutObjectFromFile(audioPath, "audio/aac")
+	err := storage.PutObjectFromFile(audioPath, "audio/mpeg")
 	if err != nil {
 		return err
 	}
