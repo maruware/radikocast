@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -16,21 +15,60 @@ import (
 	"github.com/yyoshiki41/radigo"
 )
 
-func RecProgram(stationID string, start string, areaID string, bucket string) (*string, error) {
+func RecProgram(stationID string, start string, areaID string) error {
 	fmt.Printf("Rec %s %s\n", stationID, start)
+
+	r, err := recProgram(stationID, start, areaID)
+	if err != nil {
+		return fmt.Errorf("rec error: %w", err)
+	}
+	defer r.Dispose()
+
+	return nil
+}
+
+func RecAndUploadProgram(stationID string, start string, areaID string, bucket string) error {
+	fmt.Printf("Rec %s %s\n", stationID, start)
+
+	r, err := recProgram(stationID, start, areaID)
+	if err != nil {
+		return fmt.Errorf("rec error: %w", err)
+	}
+	defer r.Dispose()
+
+	// put s3
+	fmt.Printf("bucket: %s\n", bucket)
+	err = putProgramToS3(r.audioPath, r.metadataPath, bucket)
+	if err != nil {
+		return fmt.Errorf("upload error: %w", err)
+	}
+	return nil
+}
+
+type recResult struct {
+	audioPath    string
+	metadataPath string
+
+	tmpdir string
+}
+
+func (r *recResult) Dispose() {
+	os.RemoveAll(r.tmpdir)
+}
+
+func recProgram(stationID string, start string, areaID string) (*recResult, error) {
 	startTime, err := time.ParseInLocation(datetimeLayout, start, location)
 	if err != nil {
 		return nil, err
 	}
 
-	dir, err := ioutil.TempDir("", "radikocast")
+	td, err := ioutil.TempDir("", "radikocast")
 	if err != nil {
 		return nil, err
 	}
-	defer os.RemoveAll(dir)
 
 	output := radigo.OutputConfig{
-		DirFullPath:  dir,
+		DirFullPath:  td,
 		FileBaseName: fmt.Sprintf("%s-%s", startTime.In(location).Format(datetimeLayout), stationID),
 		FileFormat:   radigo.AudioFormatAAC,
 	}
@@ -47,8 +85,8 @@ func RecProgram(stationID string, start string, areaID string, bucket string) (*
 	spin.Start()
 	defer spin.Stop()
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
-	defer ctxCancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	client, err := getClient(ctx, areaID)
 	if err != nil {
@@ -85,45 +123,62 @@ func RecProgram(stationID string, start string, areaID string, bucket string) (*
 		return nil, err
 	}
 
-	retErr := os.Rename(concatedFile, output.AbsPath())
-	if retErr != nil {
-		return nil, retErr
+	err = os.Rename(concatedFile, output.AbsPath())
+	if err != nil {
+		return nil, err
 	}
 
 	// dump metadata
 	pg, err := client.GetProgramByStartTime(ctx, stationID, startTime)
 	if err != nil {
-		ctxCancel()
 		return nil, err
 	}
+
+	printInfo(stationID, pg.Title, pg.Info)
+
+	metadata, err := NewMetadata(pg, output.AbsPath())
+	if err != nil {
+		return nil, fmt.Errorf("metadata error: %w", err)
+	}
+
+	metadataPath := strings.Replace(output.AbsPath(), ".aac", ".json", 1)
+	if err := writeJson(&metadata, metadataPath); err != nil {
+		return nil, fmt.Errorf("failed to write metadata: %w", err)
+	}
+
+	return &recResult{
+		audioPath:    output.AbsPath(),
+		metadataPath: metadataPath,
+	}, nil
+}
+
+func printInfo(stationID, title, desc string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"STATION ID", "TITLE", "DESC"})
-	table.Append([]string{stationID, pg.Title, pg.Info})
+	table.Append([]string{stationID, title, desc})
 	fmt.Print("\n")
 	table.Render()
+}
 
-	metadata := MetadataFromProg(pg)
-	metadata.AudioFilename = filepath.Base(output.AbsPath())
-	metadata.AudioSize = fileSize(output.AbsPath())
-	metadataPath := strings.Replace(output.AbsPath(), ".aac", ".json", 1)
-
-	jsonByte, _ := json.Marshal(*metadata)
-	err = ioutil.WriteFile(metadataPath, jsonByte, os.ModePerm)
+func writeJson(data interface{}, dst string) error {
+	f, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	enc := json.NewEncoder(f)
+	return enc.Encode(data)
+}
 
-	// put s3
-	fmt.Printf("bucket: %s\n", bucket)
+func putProgramToS3(audioPath string, metadataPath string, bucket string) error {
 	storage := NewS3(bucket)
-	err = storage.PutObjectFromFile(output.AbsPath(), "audio/aac")
+	err := storage.PutObjectFromFile(audioPath, "audio/aac")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = storage.PutObjectFromFile(metadataPath, "application/json")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &output.FileBaseName, nil
+	return nil
 }

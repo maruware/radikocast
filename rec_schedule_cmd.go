@@ -50,12 +50,12 @@ func (c *recScheduleCommand) Run(args []string) int {
 	}
 
 	c.ui.Output("Now downloading.. ")
-	code, err := RecProgram(stationID, start, areaID, bucket)
+	err = RecAndUploadProgram(stationID, start, areaID, bucket)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Failed to rec: %s", err))
 		return 1
 	}
-	c.ui.Output(fmt.Sprintf("Completed!\n%s", *code))
+	c.ui.Output(fmt.Sprintf("Completed!"))
 	return 0
 }
 
