@@ -14,7 +14,7 @@ type recScheduleCommand struct {
 }
 
 func (c *recScheduleCommand) Run(args []string) int {
-	var stationID, day, at, areaID, bucket string
+	var stationID, day, at, areaID, bucket, format string
 
 	f := flag.NewFlagSet("rec_schedule", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
@@ -23,6 +23,7 @@ func (c *recScheduleCommand) Run(args []string) int {
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
 	f.StringVar(&bucket, "bucket", "", "bucket")
+	f.StringVar(&format, "format", "mp3", "format")
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
 
@@ -50,7 +51,7 @@ func (c *recScheduleCommand) Run(args []string) int {
 	}
 
 	c.ui.Output("Now downloading.. ")
-	err = RecAndUploadProgram(stationID, start, areaID, bucket)
+	err = RecAndUploadProgram(stationID, start, areaID, bucket, format)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Failed to rec: %s", err))
 		return 1

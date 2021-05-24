@@ -12,13 +12,12 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
 	"github.com/yyoshiki41/go-radiko"
-	"github.com/yyoshiki41/radigo"
 )
 
-func RecProgram(stationID string, start string, areaID string) error {
+func RecProgram(stationID string, start string, areaID string, format string) error {
 	fmt.Printf("Rec %s %s\n", stationID, start)
 
-	r, err := recProgram(stationID, start, areaID)
+	r, err := recProgram(stationID, start, areaID, format)
 	if err != nil {
 		return fmt.Errorf("rec error: %w", err)
 	}
@@ -27,10 +26,10 @@ func RecProgram(stationID string, start string, areaID string) error {
 	return nil
 }
 
-func RecAndUploadProgram(stationID string, start string, areaID string, bucket string) error {
+func RecAndUploadProgram(stationID string, start string, areaID string, bucket string, format string) error {
 	fmt.Printf("Rec %s %s\n", stationID, start)
 
-	r, err := recProgram(stationID, start, areaID)
+	r, err := recProgram(stationID, start, areaID, format)
 	if err != nil {
 		return fmt.Errorf("rec error: %w", err)
 	}
@@ -56,7 +55,7 @@ func (r *recResult) Dispose() {
 	os.RemoveAll(r.tmpdir)
 }
 
-func recProgram(stationID string, start string, areaID string) (*recResult, error) {
+func recProgram(stationID string, start string, areaID string, format string) (*recResult, error) {
 	startTime, err := time.ParseInLocation(datetimeLayout, start, location)
 	if err != nil {
 		return nil, err
@@ -67,10 +66,20 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 		return nil, err
 	}
 
-	output := radigo.OutputConfig{
+	var ff string
+	switch format {
+	case "m4a":
+		ff = AudioFormatM4A
+	case "mp3":
+		ff = AudioFormatMP3
+	default:
+		return nil, fmt.Errorf("Bad format: %s", format)
+	}
+
+	output := OutputConfig{
 		DirFullPath:  td,
 		FileBaseName: fmt.Sprintf("%s-%s", startTime.In(location).Format(datetimeLayout), stationID),
-		FileFormat:   radigo.AudioFormatMP3,
+		FileFormat:   ff,
 	}
 
 	if err := output.SetupDir(); err != nil {
@@ -118,12 +127,17 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 		return nil, err
 	}
 
-	concatedFile, err := radigo.ConcatAACFilesFromList(ctx, aacDir)
+	concatedFile, err := ConcatAACFilesFromList(ctx, aacDir)
 	if err != nil {
 		return nil, err
 	}
 
-	err = radigo.ConvertAACtoMP3(ctx, concatedFile, output.AbsPath())
+	cv, err := NewConverter(ff)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cv.Convert(ctx, concatedFile, output.AbsPath())
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +155,8 @@ func recProgram(stationID string, start string, areaID string) (*recResult, erro
 		return nil, fmt.Errorf("metadata error: %w", err)
 	}
 
-	metadataPath := strings.Replace(output.AbsPath(), ".mp3", ".json", 1)
+	metadataPath := strings.Replace(output.AbsPath(),
+		fmt.Sprintf(".%s", output.AudioExt()), ".json", 1)
 	if err := writeJson(&metadata, metadataPath); err != nil {
 		return nil, fmt.Errorf("failed to write metadata: %w", err)
 	}

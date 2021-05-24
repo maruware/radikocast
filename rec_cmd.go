@@ -15,7 +15,7 @@ type recCommand struct {
 }
 
 func (c *recCommand) Run(args []string) int {
-	var stationID, start, areaID, bucket string
+	var stationID, start, areaID, bucket, format string
 
 	f := flag.NewFlagSet("rec", flag.ContinueOnError)
 	f.StringVar(&stationID, "id", "", "id")
@@ -24,6 +24,7 @@ func (c *recCommand) Run(args []string) int {
 	f.StringVar(&areaID, "area", "", "area")
 	f.StringVar(&areaID, "a", "", "area")
 	f.StringVar(&bucket, "bucket", "", "bucket")
+	f.StringVar(&format, "format", "mp3", "format")
 
 	f.Usage = func() { c.ui.Error(c.Help()) }
 	if err := f.Parse(args); err != nil {
@@ -35,7 +36,7 @@ func (c *recCommand) Run(args []string) int {
 		return 1
 	}
 	c.ui.Output("Now downloading.. ")
-	err := RecAndUploadProgram(stationID, start, areaID, bucket)
+	err := RecAndUploadProgram(stationID, start, areaID, bucket, format)
 	if err != nil {
 		c.ui.Error(err.Error())
 		return 1
