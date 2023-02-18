@@ -14,7 +14,7 @@ import (
 
 const (
 	maxAttempts    = 4
-	maxConcurrents = 64
+	maxConcurrents = 8
 )
 
 var sem = make(chan struct{}, maxConcurrents)
