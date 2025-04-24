@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.204
 	github.com/briandowns/spinner v1.23.2
 	github.com/eduncan911/podcast v1.4.2
-	github.com/jinzhu/now v1.1.1
+	github.com/jinzhu/now v1.1.5
 	github.com/mitchellh/cli v1.1.5
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/yyoshiki41/go-radiko v0.9.0
