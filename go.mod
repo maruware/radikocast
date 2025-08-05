@@ -3,7 +3,7 @@ module github.com/maruware/radikocast
 go 1.24
 
 require (
-	github.com/aws/aws-sdk-go v1.55.7
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/briandowns/spinner v1.23.2
 	github.com/eduncan911/podcast v1.4.2
 	github.com/jinzhu/now v1.1.5
