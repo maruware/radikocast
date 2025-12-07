@@ -168,8 +168,8 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 }
 
 func printInfo(stationID, title, desc string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"STATION ID", "TITLE", "DESC"})
+	table := tablewriter.NewTable(os.Stdout)
+	table.Header([]string{"STATION ID", "TITLE", "DESC"})
 	table.Append([]string{stationID, title, desc})
 	fmt.Print("\n")
 	table.Render()
