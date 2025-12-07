@@ -30,10 +30,3 @@ func init() {
 		panic(err)
 	}
 }
-
-const version = "v0.0.9"
-
-// Version returns the app version.
-func Version() string {
-	return version
-}
