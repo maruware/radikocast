@@ -1,0 +1,44 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: |
+          Which number to increment in the semantic versioning.
+          Set 'major', 'minor' or 'patch'.
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        default: patch
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Bump-up Semantic Version
+        uses: kyoh86/git-vertag-action@v1.1
+        with:
+          method: "${{ github.event.inputs.method }}"
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: latest
+          args: release --clean
