@@ -35,3 +35,17 @@ func TestStartCode(t *testing.T) {
 		t.Errorf("start code is expected %s, but %s", expect, s)
 	}
 }
+
+func TestRadikoURLForYtDlp(t *testing.T) {
+	start := time.Date(2025, 2, 3, 1, 15, 0, 0, location)
+	want := "https://radiko.jp/#!/ts/TBS/20250203011500"
+	if got := radikoURLForYtDlp("TBS", start); got != want {
+		t.Fatalf("radikoURLForYtDlp(%q, %s) = %s, want %s", "TBS", start.Format(time.RFC3339), got, want)
+	}
+}
+
+func TestUseGoRadikoDirectAlwaysEnabled(t *testing.T) {
+	if !useGoRadikoDirect() {
+		t.Fatal("useGoRadikoDirect() = false; want true")
+	}
+}

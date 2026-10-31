@@ -9,7 +9,6 @@ require (
 	github.com/jinzhu/now v1.1.5
 	github.com/mitchellh/cli v1.1.5
 	github.com/olekukonko/tablewriter v1.1.3
-	github.com/yyoshiki41/go-radiko v0.9.0
 )
 
 require (

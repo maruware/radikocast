@@ -11,7 +11,6 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
-	"github.com/yyoshiki41/go-radiko"
 )
 
 func RecProgram(stationID string, start string, areaID string, format string) error {
@@ -97,58 +96,31 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	client, err := getClient(ctx, areaID)
+	downloadedFile, err := downloadRadikoAudio(ctx, stationID, startTime, td)
 	if err != nil {
 		return nil, err
 	}
-
-	_, err = client.AuthorizeToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	uri, err := client.TimeshiftPlaylistM3U8(ctx, stationID, startTime)
-	if err != nil {
-		return nil, err
-	}
-
-	chunklist, err := radiko.GetChunklistFromM3U8(uri)
-	if err != nil {
-		return nil, err
-	}
-
-	aacDir, err := output.TempAACDir()
-	if err != nil {
-		return nil, err
-	}
-	defer os.RemoveAll(aacDir) // clean up
-
-	if err := BulkDownload(chunklist, aacDir); err != nil {
-		return nil, err
-	}
-
-	concatedFile, err := ConcatAACFilesFromList(ctx, aacDir)
-	if err != nil {
-		return nil, err
-	}
+	defer os.Remove(downloadedFile)
 
 	cv, err := NewConverter(ff)
 	if err != nil {
 		return nil, err
 	}
 
-	err = cv.Convert(ctx, concatedFile, output.AbsPath())
-	if err != nil {
+	if err := cv.Convert(ctx, downloadedFile, output.AbsPath()); err != nil {
 		return nil, err
 	}
 
-	// dump metadata
-	pg, err := client.GetProgramByStartTime(ctx, stationID, startTime)
+	pg, err := getProgramInfo(ctx, stationID, startTime)
 	if err != nil {
-		return nil, err
+		pg = &ProgramInfo{
+			Title: stationID,
+			URL:   radikoURLForYtDlp(stationID, startTime),
+			FT:    startTime.In(location).Format(datetimeLayout),
+		}
 	}
 
-	printInfo(stationID, pg.Title, pg.Info)
+	printInfo(stationID, pg.Title, pg.Description)
 
 	metadata, err := NewMetadata(pg, output.AbsPath())
 	if err != nil {
@@ -164,6 +136,7 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 	return &recResult{
 		audioPath:    output.AbsPath(),
 		metadataPath: metadataPath,
+		tmpdir:       td,
 	}, nil
 }
 
