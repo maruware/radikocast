@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -52,9 +53,25 @@ type S3 struct {
 	svc    *s3.S3
 }
 
+func awsRegion() string {
+	for _, key := range []string{"AWS_REGION", "AWS_DEFAULT_REGION"} {
+		if region := strings.TrimSpace(os.Getenv(key)); region != "" {
+			return region
+		}
+	}
+	return "ap-northeast-1"
+}
+
+func newAWSSession() *session.Session {
+	sess, err := session.NewSession(&aws.Config{Region: aws.String(awsRegion())})
+	if err != nil {
+		panic(err)
+	}
+	return sess
+}
+
 func NewS3(bucket string) *S3 {
-	sess := session.Must(session.NewSession())
-	svc := s3.New(sess)
+	svc := s3.New(newAWSSession())
 	return &S3{
 		Bucket: bucket,
 		svc:    svc,
@@ -164,8 +181,7 @@ func (s *S3) Scan() ([]*s3.Object, error) {
 }
 
 func (s *S3) GetObject(o *s3.Object) (*s3.GetObjectOutput, error) {
-	sess := session.Must(session.NewSession())
-	svc := s3.New(sess)
+	svc := s3.New(newAWSSession())
 
 	r, err := svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s.Bucket),
