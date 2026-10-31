@@ -69,3 +69,6 @@ Download binary from [release page](https://github.com/maruware/radikocast/relea
 ### Requirements
 
 * ffmpeg
+* yt-dlp with the yt-dlp-rajiko plugin installed
+
+Install the plugin with `pip install yt-dlp-rajiko` or by placing the plugin bundle into your yt-dlp plugin directory.

@@ -3,8 +3,6 @@ package radikocast
 import (
 	"path/filepath"
 	"time"
-
-	"github.com/yyoshiki41/go-radiko"
 )
 
 type MetaData struct {
@@ -18,12 +16,25 @@ type MetaData struct {
 }
 
 // MetadataFromProg return metadata from prog
-func NewMetadata(pg *radiko.Prog, audioPath string) (*MetaData, error) {
-	loc, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		return nil, err
+func NewMetadata(pg *ProgramInfo, audioPath string) (*MetaData, error) {
+	loc := location
+	if loc == nil {
+		var err error
+		loc, err = time.LoadLocation("Asia/Tokyo")
+		if err != nil {
+			return nil, err
+		}
 	}
-	t, err := time.ParseInLocation("20060102150405", pg.Ft, loc)
+
+	if pg == nil {
+		pg = &ProgramInfo{}
+	}
+
+	startCode := pg.FT
+	if startCode == "" {
+		startCode = time.Now().In(loc).Format(datetimeLayout)
+	}
+	startAt, err := time.ParseInLocation(datetimeLayout, startCode, loc)
 	if err != nil {
 		return nil, err
 	}
@@ -31,10 +42,10 @@ func NewMetadata(pg *radiko.Prog, audioPath string) (*MetaData, error) {
 	name := filepath.Base(audioPath)
 	size := fileSize(audioPath)
 	return &MetaData{
-		StartAt:       t,
+		StartAt:       startAt,
 		Title:         pg.Title,
-		Desc:          pg.Info,
-		StartCode:     pg.Ft,
+		Desc:          pg.Description,
+		StartCode:     startCode,
 		URL:           pg.URL,
 		AudioFilename: name,
 		AudioSize:     size,

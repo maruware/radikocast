@@ -1,10 +1,6 @@
 package radikocast
 
-import (
-	"time"
-
-	"github.com/yyoshiki41/go-radiko"
-)
+import "time"
 
 const (
 	tz                = "Asia/Tokyo"
@@ -13,18 +9,11 @@ const (
 )
 
 var (
-	currentAreaID string
-	location      *time.Location
+	location *time.Location
 )
 
 func init() {
 	var err error
-
-	currentAreaID, err = radiko.AreaID()
-	if err != nil {
-		panic(err)
-	}
-
 	location, err = time.LoadLocation(tz)
 	if err != nil {
 		panic(err)
