@@ -1,0 +1,11 @@
+FROM alpine:latest
+
+ENV TZ="Asia/Tokyo"
+VOLUME ["/output"]
+
+RUN apk add --no-cache ca-certificates ffmpeg tzdata
+
+COPY radikocast /bin/radikocast
+
+ENTRYPOINT ["/bin/radikocast"]
+CMD ["help"]
