@@ -115,7 +115,7 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 	if err != nil {
 		pg = &ProgramInfo{
 			Title: stationID,
-			URL:   radikoURLForYtDlp(stationID, startTime),
+			URL:   radikoProgramURL(stationID, startTime),
 			FT:    startTime.In(location).Format(datetimeLayout),
 		}
 	}

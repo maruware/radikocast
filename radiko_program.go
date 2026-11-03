@@ -15,12 +15,12 @@ type ProgramInfo struct {
 	Timestamp   int64  `json:"timestamp"`
 }
 
-func radikoURLForYtDlp(stationID string, start time.Time) string {
+func radikoProgramURL(stationID string, start time.Time) string {
 	return fmt.Sprintf("https://radiko.jp/#!/ts/%s/%s", stationID, start.In(location).Format(datetimeLayout))
 }
 
 func getProgramInfo(ctx context.Context, stationID string, startTime time.Time) (*ProgramInfo, error) {
-	url := radikoURLForYtDlp(stationID, startTime)
+	url := radikoProgramURL(stationID, startTime)
 	return &ProgramInfo{
 		Title:       stationID,
 		Description: "",
