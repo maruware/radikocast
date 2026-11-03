@@ -20,34 +20,16 @@ builds:
       - amd64
       - arm64
 
-dockers:
-  - id: docker-amd64
-    use: buildx
+dockers_v2:
+  - id: docker
     dockerfile: Dockerfile.release
-    image_templates:
-      - "maruware/radikocast:{{ .Tag }}-amd64"
-    goos: linux
-    goarch: amd64
     ids:
       - default
-
-  - id: docker-arm64
-    use: buildx
-    dockerfile: Dockerfile.release
-    image_templates:
-      - "maruware/radikocast:{{ .Tag }}-arm64"
-    goos: linux
-    goarch: arm64
-    ids:
-      - default
-
-docker_manifests:
-  - name_template: "maruware/radikocast:{{ .Tag }}"
-    image_templates:
-      - "maruware/radikocast:{{ .Tag }}-amd64"
-      - "maruware/radikocast:{{ .Tag }}-arm64"
-
-  - name_template: "maruware/radikocast:latest"
-    image_templates:
-      - "maruware/radikocast:{{ .Tag }}-amd64"
-      - "maruware/radikocast:{{ .Tag }}-arm64"
+    images:
+      - "maruware/radikocast"
+    tags:
+      - "{{ .Tag }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64

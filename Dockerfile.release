@@ -3,9 +3,11 @@ FROM alpine:latest
 ENV TZ="Asia/Tokyo"
 VOLUME ["/output"]
 
+ARG TARGETPLATFORM
+
 RUN apk add --no-cache ca-certificates ffmpeg tzdata
 
-COPY radikocast /bin/radikocast
+COPY $TARGETPLATFORM/radikocast /bin/radikocast
 
 ENTRYPOINT ["/bin/radikocast"]
 CMD ["help"]
