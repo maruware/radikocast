@@ -36,11 +36,11 @@ func TestStartCode(t *testing.T) {
 	}
 }
 
-func TestRadikoURLForYtDlp(t *testing.T) {
+func TestRadikoProgramURL(t *testing.T) {
 	start := time.Date(2025, 2, 3, 1, 15, 0, 0, location)
 	want := "https://radiko.jp/#!/ts/TBS/20250203011500"
-	if got := radikoURLForYtDlp("TBS", start); got != want {
-		t.Fatalf("radikoURLForYtDlp(%q, %s) = %s, want %s", "TBS", start.Format(time.RFC3339), got, want)
+	if got := radikoProgramURL("TBS", start); got != want {
+		t.Fatalf("radikoProgramURL(%q, %s) = %s, want %s", "TBS", start.Format(time.RFC3339), got, want)
 	}
 }
 
