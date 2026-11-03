@@ -108,7 +108,6 @@ func (s *S3) syncObject(filePath string, contentType string, contents []*s3.Obje
 		Key:         &key,
 		Body:        f,
 		ContentType: &contentType,
-		ACL:         aws.String("public-read"),
 	})
 	if err != nil {
 		return false, err
@@ -133,7 +132,6 @@ func (s *S3) PutObjectFromFile(filePath string, contentType string) error {
 		Key:         &key,
 		Body:        f,
 		ContentType: &contentType,
-		ACL:         aws.String("public-read"),
 	})
 	if err != nil {
 		return err
@@ -145,7 +143,6 @@ func (s *S3) PutObjectFromFile(filePath string, contentType string) error {
 func (s *S3) PutObject(key string, content io.Reader, contentType string) error {
 	uploader := s3manager.NewUploaderWithClient(s.svc)
 	_, err := uploader.Upload(&s3manager.UploadInput{
-		ACL:         aws.String("public-read"),
 		Bucket:      aws.String(s.Bucket),
 		Key:         aws.String(key),
 		Body:        content,
