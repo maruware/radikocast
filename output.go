@@ -2,7 +2,6 @@ package radikocast
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -64,7 +63,7 @@ func (c *OutputConfig) SetupDir() error {
 }
 
 func (c *OutputConfig) TempAACDir() (string, error) {
-	aacDir, err := ioutil.TempDir(c.DirFullPath, "aac")
+	aacDir, err := os.MkdirTemp(c.DirFullPath, "aac")
 	if err != nil {
 		return "", err
 	}

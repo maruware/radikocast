@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -23,6 +23,18 @@ func RecProgram(stationID string, start string, areaID string, format string) er
 	defer r.Dispose()
 
 	return nil
+}
+
+func RecProgramToLocal(stationID string, start string, areaID string, format string, outputDir string) (string, string, error) {
+	fmt.Printf("Rec %s %s\n", stationID, start)
+
+	r, err := recProgramToLocal(stationID, start, areaID, format, outputDir)
+	if err != nil {
+		return "", "", fmt.Errorf("rec error: %w", err)
+	}
+	defer r.Dispose()
+
+	return r.audioPath, r.metadataPath, nil
 }
 
 func RecAndUploadProgram(stationID string, start string, areaID string, bucket string, format string) error {
@@ -60,7 +72,7 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 		return nil, err
 	}
 
-	td, err := ioutil.TempDir("", "radikocast")
+	td, err := os.MkdirTemp("", "radikocast")
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +108,21 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	downloadedFile, err := downloadRadikoAudio(ctx, stationID, startTime, td)
+	pg, err := getProgramInfo(ctx, stationID, startTime)
+	if err != nil {
+		pg = &ProgramInfo{
+			Title: stationID,
+			URL:   radikoProgramURL(stationID, startTime),
+			FT:    startTime.In(location).Format(datetimeLayout),
+			To:    startTime.Add(15 * time.Minute).In(location).Format(datetimeLayout),
+		}
+	}
+	programEndTime := startTime.Add(15 * time.Minute)
+	if end := pg.EndTime(); !end.IsZero() {
+		programEndTime = end
+	}
+
+	downloadedFile, err := downloadRadikoAudio(ctx, stationID, startTime, programEndTime, td)
 	if err != nil {
 		return nil, err
 	}
@@ -109,15 +135,6 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 
 	if err := cv.Convert(ctx, downloadedFile, output.AbsPath()); err != nil {
 		return nil, err
-	}
-
-	pg, err := getProgramInfo(ctx, stationID, startTime)
-	if err != nil {
-		pg = &ProgramInfo{
-			Title: stationID,
-			URL:   radikoProgramURL(stationID, startTime),
-			FT:    startTime.In(location).Format(datetimeLayout),
-		}
 	}
 
 	printInfo(stationID, pg.Title, pg.Description)
@@ -135,6 +152,107 @@ func recProgram(stationID string, start string, areaID string, format string) (*
 
 	return &recResult{
 		audioPath:    output.AbsPath(),
+		metadataPath: metadataPath,
+		tmpdir:       td,
+	}, nil
+}
+
+func recProgramToLocal(stationID string, start string, areaID string, format string, outputDir string) (*recResult, error) {
+	startTime, err := time.ParseInLocation(datetimeLayout, start, location)
+	if err != nil {
+		return nil, err
+	}
+
+	td, err := os.MkdirTemp("", "radikocast")
+	if err != nil {
+		return nil, err
+	}
+
+	var ff string
+	switch format {
+	case "m4a":
+		ff = AudioFormatM4A
+	case "mp3":
+		ff = AudioFormatMP3
+	default:
+		return nil, fmt.Errorf("Bad format: %s", format)
+	}
+
+	outputCfg, err := NewOutputConfig(fmt.Sprintf("%s-%s", startTime.In(location).Format(datetimeLayout), stationID), ff)
+	if err != nil {
+		return nil, err
+	}
+	if outputDir != "" {
+		if filepath.IsAbs(outputDir) {
+			outputCfg.DirFullPath = filepath.Clean(outputDir)
+		} else {
+			wd, err := os.Getwd()
+			if err != nil {
+				return nil, err
+			}
+			outputCfg.DirFullPath = filepath.Join(wd, outputDir)
+		}
+	}
+
+	if err := outputCfg.SetupDir(); err != nil {
+		return nil, err
+	}
+
+	if outputCfg.IsExist() {
+		return nil, fmt.Errorf("Dup rec: %s", outputCfg.AbsPath())
+	}
+
+	spin := spinner.New(spinner.CharSets[9], time.Second)
+	spin.Start()
+	defer spin.Stop()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	pg, err := getProgramInfo(ctx, stationID, startTime)
+	if err != nil {
+		pg = &ProgramInfo{
+			Title: stationID,
+			URL:   radikoProgramURL(stationID, startTime),
+			FT:    startTime.In(location).Format(datetimeLayout),
+			To:    startTime.Add(15 * time.Minute).In(location).Format(datetimeLayout),
+		}
+	}
+	programEndTime := startTime.Add(15 * time.Minute)
+	if end := pg.EndTime(); !end.IsZero() {
+		programEndTime = end
+	}
+
+	downloadedFile, err := downloadRadikoAudio(ctx, stationID, startTime, programEndTime, td)
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(downloadedFile)
+
+	cv, err := NewConverter(ff)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cv.Convert(ctx, downloadedFile, outputCfg.AbsPath()); err != nil {
+		return nil, err
+	}
+
+	printInfo(stationID, pg.Title, pg.Description)
+
+	metadata, err := NewMetadata(pg, outputCfg.AbsPath())
+	if err != nil {
+		return nil, fmt.Errorf("metadata error: %w", err)
+	}
+
+	metadataPath := strings.Replace(outputCfg.AbsPath(),
+		fmt.Sprintf(".%s", outputCfg.AudioExt()), ".json", 1)
+	if err := writeJson(&metadata, metadataPath); err != nil {
+		return nil, fmt.Errorf("failed to write metadata: %w", err)
+	}
+
+	return &recResult{
+		audioPath:    outputCfg.AbsPath(),
 		metadataPath: metadataPath,
 		tmpdir:       td,
 	}, nil

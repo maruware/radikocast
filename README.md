@@ -27,7 +27,8 @@ Options:
   -id=name                 Station id
   -start,s=201610101000    Start time
   -area,a=name             Area id
-  -bucket=bucketname	   S3 bucket name
+  -bucket=bucketname	   S3 bucket name (optional)
+  -out,-output=dir         Local output directory (used when -bucket is omitted)
 ```
 
 ### rec_schedule
