@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -62,7 +61,7 @@ func (f *ffmpeg) stderrPipe() (io.ReadCloser, error) {
 
 // ConcatAACFilesFromList concatenates files from the list of resources.
 func ConcatAACFilesFromList(ctx context.Context, resourcesDir string) (string, error) {
-	files, err := ioutil.ReadDir(resourcesDir)
+	files, err := os.ReadDir(resourcesDir)
 	if err != nil {
 		return "", err
 	}
@@ -89,9 +88,9 @@ func ConcatAACFilesAll(ctx context.Context, files []string, resourcesDir string,
 		reducedFiles := files[:oneConcatNum]
 		restFiles := files[oneConcatNum:]
 		// reducedFiles -> reducedFiles[0]
-		tmpOutputFile, err := ioutil.TempFile(resourcesDir, "tmp-concatenated-*.aac")
+		tmpOutputFile, err := os.CreateTemp(resourcesDir, "tmp-concatenated-*.aac")
 		if err != nil {
-			fmt.Println("Failed to call ioutil.TempFile")
+			fmt.Println("Failed to create temporary file")
 			return err
 		}
 		err = ConcatAACFiles(ctx, reducedFiles, resourcesDir, tmpOutputFile.Name())
@@ -108,7 +107,7 @@ func ConcatAACFilesAll(ctx context.Context, files []string, resourcesDir string,
 }
 
 func ConcatAACFiles(ctx context.Context, input []string, resourcesDir string, output string) error {
-	listFile, err0 := ioutil.TempFile(resourcesDir, "aac_resources")
+	listFile, err0 := os.CreateTemp(resourcesDir, "aac_resources")
 	if err0 != nil {
 		return err0
 	}

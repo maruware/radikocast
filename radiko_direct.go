@@ -44,6 +44,10 @@ type stationStreamDocument struct {
 	} `xml:"url"`
 }
 
+const (
+	timefreeMaxChunkSeconds = 300
+)
+
 func useGoRadikoDirect() bool {
 	return true
 }
@@ -180,7 +184,20 @@ func fetchRadikoAuth(stationID string) (*radikoAuth, error) {
 	return &radikoAuth{Token: token, User: user, AreaID: parts[0]}, nil
 }
 
-func directPlaylistURL(stationID, lsid string, startTime time.Time, timefree bool) (string, error) {
+func preferredPlaylistScore(rawURL string) int {
+	if strings.Contains(rawURL, "dr-wowza.radiko-cf.com") || strings.Contains(rawURL, "rd-wowza-radiko.radiko-cf.com") {
+		return 0
+	}
+	if strings.Contains(rawURL, "radiko.jp") || strings.Contains(rawURL, "f-radiko.smartstream.ne.jp") {
+		return 1
+	}
+	if strings.Contains(rawURL, "tf-f-rpaa-radiko.smartstream.ne.jp") || strings.Contains(rawURL, "tf-c-rpaa-radiko.smartstream.ne.jp") {
+		return 2
+	}
+	return 3
+}
+
+func directPlaylistBaseURL(stationID string, timefree bool) (string, error) {
 	streamURL := fmt.Sprintf("https://radiko.jp/v3/station/stream/pc_html5/%s.xml", stationID)
 	resp, err := http.Get(streamURL)
 	if err != nil {
@@ -200,29 +217,60 @@ func directPlaylistURL(stationID, lsid string, startTime time.Time, timefree boo
 	if err := xml.Unmarshal(body, &doc); err != nil {
 		return "", err
 	}
+
+	candidates := make([]string, 0, len(doc.URLs))
 	for _, u := range doc.URLs {
-		if u.TimeFree == timefree && u.AreaFree == false && u.Playlist != "" {
-			parsed, err := url.Parse(u.Playlist)
-			if err != nil {
-				continue
-			}
-			q := parsed.Query()
-			q.Set("station_id", stationID)
-			q.Set("l", "15")
-			q.Set("lsid", lsid)
-			q.Set("type", "b")
-			if timefree {
-				q.Set("start_at", startTime.In(location).Format(datetimeLayout))
-				q.Set("ft", startTime.In(location).Format(datetimeLayout))
-				q.Set("end_at", startTime.Add(15*time.Minute).In(location).Format(datetimeLayout))
-				q.Set("to", startTime.Add(15*time.Minute).In(location).Format(datetimeLayout))
-				q.Set("l", "300")
-			}
-			parsed.RawQuery = q.Encode()
-			return parsed.String(), nil
+		if u.TimeFree == timefree && !u.AreaFree && u.Playlist != "" {
+			candidates = append(candidates, u.Playlist)
 		}
 	}
-	return "", fmt.Errorf("no matching stream playlist was found for %s", stationID)
+	if len(candidates) == 0 {
+		return "", fmt.Errorf("no matching stream playlist was found for %s", stationID)
+	}
+
+	best := candidates[0]
+	bestScore := preferredPlaylistScore(best)
+	for _, candidate := range candidates[1:] {
+		score := preferredPlaylistScore(candidate)
+		if score < bestScore {
+			best = candidate
+			bestScore = score
+		}
+	}
+	return best, nil
+}
+
+func directPlaylistURL(basePlaylistURL, stationID, lsid string, startTime, endTime time.Time, timefree bool) (string, error) {
+	if endTime.IsZero() || endTime.Before(startTime) {
+		endTime = startTime.Add(15 * time.Minute)
+	}
+
+	parsed, err := url.Parse(basePlaylistURL)
+	if err != nil {
+		return "", err
+	}
+	q := parsed.Query()
+	q.Set("station_id", stationID)
+	q.Set("lsid", lsid)
+	q.Set("type", "b")
+	if timefree {
+		l := int(endTime.Sub(startTime).Seconds())
+		if l <= 0 {
+			l = timefreeMaxChunkSeconds
+		}
+		if l > timefreeMaxChunkSeconds {
+			l = timefreeMaxChunkSeconds
+		}
+		q.Set("l", strconv.Itoa(l))
+		q.Set("start_at", startTime.In(location).Format(datetimeLayout))
+		q.Set("ft", startTime.In(location).Format(datetimeLayout))
+		q.Set("end_at", endTime.In(location).Format(datetimeLayout))
+		q.Set("to", endTime.In(location).Format(datetimeLayout))
+	} else {
+		q.Set("l", "15")
+	}
+	parsed.RawQuery = q.Encode()
+	return parsed.String(), nil
 }
 
 func fetchWithRadikoHeaders(urlString string, auth *radikoAuth, extra map[string]string) ([]byte, error) {
@@ -287,23 +335,49 @@ func mediaSegmentURLs(mediaPlaylistURL string, auth *radikoAuth) ([]string, erro
 	return segments, nil
 }
 
-func downloadRadikoAudioGo(ctx context.Context, stationID string, startTime time.Time, dir string) (string, error) {
+func downloadRadikoAudioGo(ctx context.Context, stationID string, startTime, endTime time.Time, dir string) (string, error) {
+	if endTime.IsZero() || endTime.Before(startTime) {
+		endTime = startTime.Add(15 * time.Minute)
+	}
+
 	auth, err := fetchRadikoAuth(stationID)
 	if err != nil {
 		return "", fmt.Errorf("radiko auth failed: %w", err)
 	}
 
-	masterPlaylistURL, err := directPlaylistURL(stationID, auth.User, startTime, false)
+	basePlaylistURL, err := directPlaylistBaseURL(stationID, true)
 	if err != nil {
 		return "", err
 	}
-	mediaPlaylistURL, err := resolveMediaPlaylistURL(masterPlaylistURL, auth)
-	if err != nil {
-		return "", err
-	}
-	segments, err := mediaSegmentURLs(mediaPlaylistURL, auth)
-	if err != nil {
-		return "", err
+
+	segmentURLSet := map[string]struct{}{}
+	segments := make([]string, 0, 1024)
+	for chunkStart := startTime; chunkStart.Before(endTime); {
+		chunkEnd := chunkStart.Add(timefreeMaxChunkSeconds * time.Second)
+		if chunkEnd.After(endTime) {
+			chunkEnd = endTime
+		}
+
+		masterPlaylistURL, err := directPlaylistURL(basePlaylistURL, stationID, auth.User, chunkStart, chunkEnd, true)
+		if err != nil {
+			return "", err
+		}
+		mediaPlaylistURL, err := resolveMediaPlaylistURL(masterPlaylistURL, auth)
+		if err != nil {
+			return "", err
+		}
+		chunkSegments, err := mediaSegmentURLs(mediaPlaylistURL, auth)
+		if err != nil {
+			return "", err
+		}
+		for _, segment := range chunkSegments {
+			if _, exists := segmentURLSet[segment]; exists {
+				continue
+			}
+			segmentURLSet[segment] = struct{}{}
+			segments = append(segments, segment)
+		}
+		chunkStart = chunkEnd
 	}
 
 	segmentFiles := make([]string, 0, len(segments))
